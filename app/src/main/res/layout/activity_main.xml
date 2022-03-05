@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/pickVideoButtonId"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:strokeColor="@color/design_default_color_primary"
+        android:text="Pick Video"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:textAllCaps="false"
+        android:layout_marginEnd="20dp"
+        app:icon="@drawable/ic_baseline_video_file_24"/>
+
+    <VideoView
+        android:id="@+id/videoViewId"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@id/pickVideoButtonId"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginStart="20dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/resizeVideoButtonId"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:strokeColor="@color/design_default_color_primary"
+        android:text="Resize Video"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:textAllCaps="false"
+        android:layout_below="@id/videoViewId"
+        android:layout_marginEnd="20dp"
+        app:icon="@drawable/ic_baseline_compress_24"/>
+
+</RelativeLayout>

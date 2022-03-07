@@ -1,6 +1,7 @@
 package org.codebase.ffmpegvideocompression.tools
 
 import android.content.Context
+import android.util.Log
 import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
 import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException
@@ -20,6 +21,8 @@ class VideoResizer private constructor(private val context: Context){
 
     fun setFile(originalFile: File) : VideoResizer {
         this.video = originalFile
+        Log.e("Video1", originalFile.path)
+
         return this
     }
 
@@ -45,6 +48,7 @@ class VideoResizer private constructor(private val context: Context){
 
     fun resize() {
         if (video == null || !video!!.exists()) {
+            Log.e("Video", video!!.path)
             callback!!.onFailure(IOException("File not exist"))
             return
         }

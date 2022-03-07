@@ -4,10 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
+import android.util.Log
+import java.io.*
+import java.lang.System.`in`
+
 
 object Utils {
 
@@ -24,9 +24,28 @@ object Utils {
 
     fun copyFileToExternalStorage(resourceId: Int, resourceName: String, context: Context): File {
         val pathSdCard = outPath + resourceName
+        Log.e("FFMpegpath", pathSdCard)
         try {
             val inputStream = context.resources.openRawResource(resourceId)
+            Log.e("FFMpegpath1", inputStream.toString())
+
+//            val out = FileOutputStream(pathSdCard)
+//            Log.e("Out", out.toString())
+//            val buff = ByteArray(8*1024)
+//            var read: Int
+//
+//            try {
+//                while (inputStream.read(buff).also { read = it } > 0) {
+//                    out.write(buff, 0, read)
+//                }
+//            } finally {
+//                inputStream.close()
+//                out.close()
+//            }
+
             inputStream.toFile(pathSdCard)
+            Log.e("FFMpegpath2", inputStream.toFile(pathSdCard).toString())
+
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -35,8 +54,12 @@ object Utils {
         return File(pathSdCard)
     }
 
-    fun InputStream.toFile(path: String) {
-        File(path).outputStream().use { this.copyTo(it) }
+    private fun InputStream.toFile(path: String) {
+        Log.e("FFMpegpath3", "here1")
+
+        File(path).outputStream().use {
+            this.copyTo(it)
+        }
     }
 
     fun getConvertedFile(folder: String, fileName: String) : File {

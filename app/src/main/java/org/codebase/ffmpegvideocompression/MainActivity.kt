@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         lateinit var onProgress: ProgressPublish
 
         fun setProgressListener(onProgress: ProgressPublish) {
+            Log.e("Progress", "Check progress")
             this.onProgress = onProgress
         }
     }
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         //Check for permissions
         checkPermissions()
 
-        //This will copy resources to storage directory
+        //This will copy resources file to storage directory
         setUpResources()
 
 

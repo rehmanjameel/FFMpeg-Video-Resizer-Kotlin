@@ -28,7 +28,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:visibility="invisible" />
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/videoDurationTextId"
@@ -38,12 +38,45 @@
         android:layout_margin="10dp"
         android:gravity="center" />
 
+    <RadioGroup
+        android:id="@+id/radioGroupId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/videoDurationTextId"
+        android:layout_marginStart="20dp"
+        android:visibility="invisible">
+        <RadioButton
+            android:id="@+id/smallSizeId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="306:240"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/mediumSizeId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="480:320"/>
+
+        <RadioButton
+            android:id="@+id/largeSizeId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="614:480"/>
+
+        <RadioButton
+            android:id="@+id/xLargeSizeId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1080:720"/>
+    </RadioGroup>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/resizeVideoButtonId"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/videoDurationTextId"
+        android:layout_below="@id/radioGroupId"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"

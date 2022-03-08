@@ -9,9 +9,12 @@ import android.nfc.Tag
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.util.Log
 import android.view.View
 import android.widget.MediaController
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,7 +32,6 @@ import org.codebase.ffmpegvideocompression.tools.VideoResizer
 import org.codebase.ffmpegvideocompression.utils.Utils
 import java.io.File
 import java.lang.Exception
-import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity(), FFMpegCallback {
 
@@ -52,12 +54,19 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
     private var videoPath: String = ""
     private var videoUri: Uri? = null
     lateinit var video: File
-    lateinit var videoGallery: File
+    private var videoGallery: File? = null
+    private lateinit var radioGroup: RadioGroup
+    private lateinit var radioButtons: RadioButton
+    private lateinit var countDownTimer : CountDownTimer
+
+    private var radioButtonText = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         this.context = this
+//        radioGroup = radioGroupId
         //Check for permissions
         checkPermissions()
 
@@ -71,22 +80,7 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         //This will resize video in given size
         //Note: Size must be in this format = width:height
         resizeVideoButtonId.setOnClickListener {
-            //First kill previous running task if in process
-            stopRunningProcess()
-            videoPath()
-            if (!isRunning()) {
-                VideoResizer.with(context!!)
-                    .setFile(videoGallery)
-                    .setSize("320:480") //320 x 480
-                    .setOutPutPath(Utils.outPath + "video")
-                    .setOutPutFileName("resized_${System.currentTimeMillis()}.mp4")
-                    .setCallBack(this)
-                    .resize()
-
-                ProgressDialog.show(supportFragmentManager, VideoResizer.TAG)
-            } else {
-                showInProgressToast()
-            }
+            reSizeVideo()
         }
     }
 
@@ -108,6 +102,16 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
                 videoView.setMediaController(mediaController)
 
                 videoView.setOnPreparedListener {
+//                    countDownTimer = object : CountDownTimer(30000, 1000) {
+//                        override fun onTick(millisUntilFinished: Long) {
+//                            countTime.text = "Resend in: ${millisUntilFinished/1000}"
+//                        }
+//
+//                        override fun onFinish() {
+//                            resendButton.isClickable = true
+//                            resendButton.backgroundTintList = activity?.getColorStateList(R.color.purple_500)
+//                        }
+//                    }.start()
                     videoDurationTextId.text = "Duration: ${Utils.milliSecondsToTimer(videoView.duration.toLong())}\n"
                     isPlay = true
                 }
@@ -126,6 +130,8 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
                 }
 
                 videoView.start()
+                radioGroupId.visibility = View.VISIBLE
+
             }
         }
     })
@@ -148,6 +154,46 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         videoPath = FilePickerHelper.getPath(applicationContext, videoUri!!).toString()
         videoGallery = File(videoPath)
         Log.e("Path", videoGallery.toString())
+
+    }
+
+    private fun getRadioButtonText() {
+        val radioButtonId: Int = radioGroupId.checkedRadioButtonId
+        Log.e("RadioId", radioButtonId.toString())
+
+        if (radioButtonId != -1) {
+            radioButtons = findViewById(radioButtonId)
+            radioButtonText = radioButtons.text.toString()
+            Log.e("Radiotext", radioButtonText)
+        }
+    }
+
+    private fun reSizeVideo() {
+        //Function to get the VideoPath in File format
+        //First kill previous running task if in process
+        stopRunningProcess()
+        if (videoUri != null) {
+            videoPath()
+
+            getRadioButtonText()
+            if (!isRunning()) {
+                Log.e("Radio", radioButtonText)
+
+                VideoResizer.with(context!!)
+                    .setFile(videoGallery!!)
+                    .setSize(radioButtonText) //320 x 480
+                    .setOutPutPath(Utils.outPath + "video")
+                    .setOutPutFileName("resized_${System.currentTimeMillis()}.mp4")
+                    .setCallBack(this)
+                    .resize()
+
+                ProgressDialog.show(supportFragmentManager, VideoResizer.TAG)
+            } else {
+                showInProgressToast()
+            }
+        } else {
+            Toast.makeText(context, "Please pick the video first", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun checkPermissions() {

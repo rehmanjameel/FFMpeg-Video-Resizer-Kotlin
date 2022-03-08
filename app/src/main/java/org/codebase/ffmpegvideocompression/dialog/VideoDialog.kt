@@ -36,7 +36,7 @@ class VideoDialog: DialogFragment() {
         //Set the path in video view to show the video
         videoView.setVideoPath(file.path)
 
-        //Set media controller to set the anchor
+        //Set media controller to play the video
         val mediaController = MediaController(activity)
         mediaController.setAnchorView(videoView)
         videoView.setMediaController(mediaController)
@@ -57,6 +57,7 @@ class VideoDialog: DialogFragment() {
         return MaterialAlertDialogBuilder(requireActivity())
             .setView(view)
             .setTitle("Preview")
+            .setCancelable(false)
             .setPositiveButton("Cancel") { dialog, which ->
                 dialog.dismiss()
             }

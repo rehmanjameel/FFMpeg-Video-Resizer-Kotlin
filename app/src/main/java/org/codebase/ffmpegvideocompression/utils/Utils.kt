@@ -6,8 +6,6 @@ import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import java.io.*
-import java.lang.System.`in`
-
 
 object Utils {
 
@@ -29,22 +27,22 @@ object Utils {
             val inputStream = context.resources.openRawResource(resourceId)
             Log.e("FFMpegpath1", inputStream.toString())
 
-//            val out = FileOutputStream(pathSdCard)
-//            Log.e("Out", out.toString())
-//            val buff = ByteArray(8*1024)
-//            var read: Int
-//
-//            try {
-//                while (inputStream.read(buff).also { read = it } > 0) {
-//                    out.write(buff, 0, read)
-//                }
-//            } finally {
-//                inputStream.close()
-//                out.close()
-//            }
+            val out = FileOutputStream(pathSdCard)
+            Log.e("Out", out.toString())
+            val buff = ByteArray(8*1024)
+            var read: Int
 
-            inputStream.toFile(pathSdCard)
-            Log.e("FFMpegpath2", inputStream.toFile(pathSdCard).toString())
+            try {
+                while (inputStream.read(buff).also { read = it } > 0) {
+                    out.write(buff, 0, read)
+                }
+            } finally {
+                inputStream.close()
+                out.close()
+            }
+
+//            inputStream.toFile(pathSdCard)
+//            Log.e("FFMpegpath2", inputStream.toFile(pathSdCard).toString())
 
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
@@ -54,13 +52,13 @@ object Utils {
         return File(pathSdCard)
     }
 
-    private fun InputStream.toFile(path: String) {
-        Log.e("FFMpegpath3", "here1")
-
-        File(path).outputStream().use {
-            this.copyTo(it)
-        }
-    }
+//    private fun InputStream.toFile(path: String) {
+//        Log.e("FFMpegpath3", "here1")
+//
+//        File(path).outputStream().use {
+//            this.copyTo(it)
+//        }
+//    }
 
     fun getConvertedFile(folder: String, fileName: String) : File {
         val f = File(folder)

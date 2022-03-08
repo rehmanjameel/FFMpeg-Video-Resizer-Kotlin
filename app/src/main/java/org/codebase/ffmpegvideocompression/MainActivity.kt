@@ -1,12 +1,20 @@
 package org.codebase.ffmpegvideocompression
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.nfc.Tag
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.MediaController
 import android.widget.Toast
+import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.github.hiteshsondhi88.libffmpeg.FFmpeg
@@ -15,6 +23,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.codebase.ffmpegvideocompression.callback.FFMpegCallback
 import org.codebase.ffmpegvideocompression.dialog.ProgressDialog
 import org.codebase.ffmpegvideocompression.dialog.VideoDialog
+import org.codebase.ffmpegvideocompression.filespath.FilePickerHelper
 import org.codebase.ffmpegvideocompression.tools.OutPutType
 import org.codebase.ffmpegvideocompression.tools.VideoResizer
 import org.codebase.ffmpegvideocompression.utils.Utils
@@ -40,7 +49,10 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
     }
     private var context: Context? = null
 
+    private var videoPath: String = ""
+    private var videoUri: Uri? = null
     lateinit var video: File
+    lateinit var videoGallery: File
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -52,16 +64,19 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         //This will copy resources file to storage directory
         setUpResources()
 
+        pickVideoButtonId.setOnClickListener {
+            pickVideo()
+        }
 
         //This will resize video in given size
         //Note: Size must be in this format = width:height
         resizeVideoButtonId.setOnClickListener {
             //First kill previous running task if in process
             stopRunningProcess()
-
+            videoPath()
             if (!isRunning()) {
                 VideoResizer.with(context!!)
-                    .setFile(video)
+                    .setFile(videoGallery)
                     .setSize("320:480") //320 x 480
                     .setOutPutPath(Utils.outPath + "video")
                     .setOutPutFileName("resized_${System.currentTimeMillis()}.mp4")
@@ -73,6 +88,66 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
                 showInProgressToast()
             }
         }
+    }
+
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
+        ActivityResultCallback { result ->
+            var isPlay = false
+
+            if (result.resultCode == Activity.RESULT_OK) {
+            val intent = result.data
+            if (intent != null) {
+                videoUri = intent.data!!
+                val videoView = videoViewId
+                videoView.visibility = View.VISIBLE
+                videoView.setVideoPath(videoUri.toString())
+
+                Log.e("Uri0", videoUri.toString())
+                val mediaController = MediaController(applicationContext)
+                mediaController.setAnchorView(videoView)
+                videoView.setMediaController(mediaController)
+
+                videoView.setOnPreparedListener {
+                    videoDurationTextId.text = "Duration: ${Utils.milliSecondsToTimer(videoView.duration.toLong())}\n"
+                    isPlay = true
+                }
+
+                videoView.setOnClickListener {
+                    if (isPlay) {
+                        videoView.pause()
+                        isPlay = false
+                    } else {
+                        videoView.start()
+                        isPlay = true
+                    }
+                }
+                videoView.setOnCompletionListener {
+                    videoView.pause()
+                }
+
+                videoView.start()
+            }
+        }
+    })
+    private fun pickVideo() {
+//        val intent = Intent(Intent.ACTION_PICK)
+//        intent.type = "video/*"
+//        galleryLauncher.launch(intent)
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//
+//        } else {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "video/*"
+            galleryLauncher.launch(intent)
+//        }
+    }
+
+    private fun videoPath() {
+        videoPath = FilePickerHelper.getPath(applicationContext, videoUri!!).toString()
+        videoGallery = File(videoPath)
+        Log.e("Path", videoGallery.toString())
     }
 
     private fun checkPermissions() {

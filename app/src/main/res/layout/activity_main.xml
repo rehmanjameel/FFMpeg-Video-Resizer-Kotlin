@@ -23,18 +23,27 @@
     <VideoView
         android:id="@+id/videoViewId"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="250dp"
         android:layout_below="@id/pickVideoButtonId"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginStart="20dp"/>
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/videoDurationTextId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/videoViewId"
+        android:layout_margin="10dp"
+        android:gravity="center" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/resizeVideoButtonId"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/videoViewId"
+        android:layout_below="@id/videoDurationTextId"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"

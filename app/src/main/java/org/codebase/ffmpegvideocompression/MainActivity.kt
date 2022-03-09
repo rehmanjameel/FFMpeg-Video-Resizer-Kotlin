@@ -1,7 +1,10 @@
 package org.codebase.ffmpegvideocompression
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -33,6 +36,8 @@ import org.codebase.ffmpegvideocompression.utils.Utils
 import java.io.File
 import java.lang.Exception
 
+@SuppressLint("SetTextI18n")
+
 class MainActivity : AppCompatActivity(), FFMpegCallback {
 
     interface ProgressPublish {
@@ -49,15 +54,16 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
             this.onProgress = onProgress
         }
     }
+
     private var context: Context? = null
 
     private var videoPath: String = ""
     private var videoUri: Uri? = null
     lateinit var video: File
     private var videoGallery: File? = null
-    private lateinit var radioGroup: RadioGroup
+    private var isGranted = false
+    //    private lateinit var radioGroup: RadioGroup
     private lateinit var radioButtons: RadioButton
-    private lateinit var countDownTimer : CountDownTimer
 
     private var radioButtonText = ""
 
@@ -84,57 +90,50 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         }
     }
 
-    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
-        ActivityResultCallback { result ->
-            var isPlay = false
+    private val galleryLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
+            ActivityResultCallback { result ->
+                var isPlay = false
 
-            if (result.resultCode == Activity.RESULT_OK) {
-            val intent = result.data
-            if (intent != null) {
-                videoUri = intent.data!!
-                val videoView = videoViewId
-                videoView.visibility = View.VISIBLE
-                videoView.setVideoPath(videoUri.toString())
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val intent = result.data
+                    if (intent != null) {
+                        videoUri = intent.data!!
+                        val videoView = videoViewId
+                        videoView.visibility = View.VISIBLE
+                        videoView.setVideoPath(videoUri.toString())
 
-                Log.e("Uri0", videoUri.toString())
-                val mediaController = MediaController(applicationContext)
-                mediaController.setAnchorView(videoView)
-                videoView.setMediaController(mediaController)
+                        Log.e("Uri0", videoUri.toString())
+                        val mediaController = MediaController(this@MainActivity)
+                        mediaController.setAnchorView(videoView)
+                        videoView.setMediaController(mediaController)
 
-                videoView.setOnPreparedListener {
-//                    countDownTimer = object : CountDownTimer(30000, 1000) {
-//                        override fun onTick(millisUntilFinished: Long) {
-//                            countTime.text = "Resend in: ${millisUntilFinished/1000}"
-//                        }
-//
-//                        override fun onFinish() {
-//                            resendButton.isClickable = true
-//                            resendButton.backgroundTintList = activity?.getColorStateList(R.color.purple_500)
-//                        }
-//                    }.start()
-                    videoDurationTextId.text = "Duration: ${Utils.milliSecondsToTimer(videoView.duration.toLong())}\n"
-                    isPlay = true
-                }
+                        videoView.setOnPreparedListener {
 
-                videoView.setOnClickListener {
-                    if (isPlay) {
-                        videoView.pause()
-                        isPlay = false
-                    } else {
+                            videoDurationTextId.text = "Duration: ${Utils.milliSecondsToTimer(videoView.duration.toLong())}\n"
+                            isPlay = true
+                        }
+
+                        videoView.setOnClickListener {
+                            isPlay = if (isPlay) {
+                                videoView.pause()
+                                false
+                            } else {
+                                videoView.start()
+                                true
+                            }
+                        }
+                        videoView.setOnCompletionListener {
+                            videoView.pause()
+                        }
+
                         videoView.start()
-                        isPlay = true
+                        radioGroupId.visibility = View.VISIBLE
+
                     }
                 }
-                videoView.setOnCompletionListener {
-                    videoView.pause()
-                }
+            })
 
-                videoView.start()
-                radioGroupId.visibility = View.VISIBLE
-
-            }
-        }
-    })
     private fun pickVideo() {
 //        val intent = Intent(Intent.ACTION_PICK)
 //        intent.type = "video/*"
@@ -142,11 +141,19 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 //
 //        } else {
+        if (isGranted) {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
             intent.addCategory(Intent.CATEGORY_OPENABLE)
             intent.type = "video/*"
             galleryLauncher.launch(intent)
+            isGranted = true
+        } else {
+            Log.e("Granted!", "${!isGranted}")
+            checkPermissions()
+            isGranted = false
+        }
+
 //        }
     }
 
@@ -198,34 +205,85 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
 
     private fun checkPermissions() {
         //Ask for permissions
-        val externalStorageReadPermission: Int = ContextCompat.checkSelfPermission(applicationContext,
-            android.Manifest.permission.READ_EXTERNAL_STORAGE)
-        val externalStorageWritePermission: Int = ContextCompat.checkSelfPermission(applicationContext,
-            android.Manifest.permission.READ_EXTERNAL_STORAGE)
-        val listPermissionNeeded : ArrayList<String> = ArrayList()
+        val externalStorageReadPermission: Int = ContextCompat.checkSelfPermission(
+            applicationContext,
+            Manifest.permission.READ_EXTERNAL_STORAGE)
+        val externalStorageWritePermission: Int = ContextCompat.checkSelfPermission(
+            applicationContext,
+            Manifest.permission.READ_EXTERNAL_STORAGE)
+        val listPermissionNeeded: ArrayList<String> = ArrayList()
 
         if (externalStorageReadPermission != PackageManager.PERMISSION_GRANTED) {
-            listPermissionNeeded.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            listPermissionNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         if (externalStorageWritePermission != PackageManager.PERMISSION_GRANTED) {
-            listPermissionNeeded.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            listPermissionNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
         if (listPermissionNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, listPermissionNeeded.toTypedArray(), 1)
+        } else {
+            isGranted = true
         }
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+        grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == 1) {
-            setUpResources()
+        when (requestCode) {
+            1 -> {
+                val permissionMap : HashMap<String, Int> = HashMap()
+
+                // Initialize the map with permissions
+                permissionMap[Manifest.permission.READ_EXTERNAL_STORAGE] = PackageManager.PERMISSION_GRANTED
+                permissionMap[Manifest.permission.WRITE_EXTERNAL_STORAGE] = PackageManager.PERMISSION_GRANTED
+
+                if (grantResults.isNotEmpty()) {
+                    for (i in permissions.indices) {
+                        permissionMap[permissions[i]] = grantResults[i]
+                    }
+                    if (permissionMap[Manifest.permission.READ_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED &&
+                        permissionMap[Manifest.permission.WRITE_EXTERNAL_STORAGE] == PackageManager.PERMISSION_GRANTED) {
+                        isGranted = true
+
+                        pickVideo()
+                        Log.d("Permissions", "All permissions granted")
+                    } else {
+                        isGranted = false
+                        Log.d("Permissions", "Some permissions not granted ask again")
+
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE) ||
+                            ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                            showDialogOK("Storage Permission required for this app") { dialog, which ->
+                                when (which) {
+                                    DialogInterface.BUTTON_POSITIVE -> checkPermissions()
+                                    DialogInterface.BUTTON_NEGATIVE -> {
+                                        dialog.dismiss()
+                                    }
+                                }
+                            }
+                        } else {
+                            Toast.makeText(this, "Go to settings and enable permissions",
+                                Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
         }
     }
+
+    //Dialog for permissions if permission not granted
+    private fun showDialogOK(message: String, okListener: DialogInterface.OnClickListener) {
+        MaterialAlertDialogBuilder(this)
+            .setMessage(message)
+            .setPositiveButton("OK", okListener)
+            .setNegativeButton("Cancel", okListener)
+            .create()
+            .show()
+    }
+
     override fun onProgress(progress: String) {
         Log.i("Tag", "Running: $progress")
 
@@ -250,7 +308,7 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         val builder = MaterialAlertDialogBuilder(this)
         builder.setTitle("Error")
         builder.setMessage("${error.message}")
-        builder.setPositiveButton("Ok") {dialog, _ ->
+        builder.setPositiveButton("Ok") { dialog, _ ->
             dialog.dismiss()
         }
         builder.setCancelable(false)
@@ -265,7 +323,7 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         val builder = MaterialAlertDialogBuilder(this)
         builder.setTitle("Not available error")
         builder.setMessage("${error.message}")
-        builder.setPositiveButton("Ok") {dialog, _ ->
+        builder.setPositiveButton("Ok") { dialog, _ ->
             dialog.dismiss()
         }
         builder.setCancelable(false)
@@ -289,15 +347,18 @@ class MainActivity : AppCompatActivity(), FFMpegCallback {
         Log.e("Video0", video.path)
 
     }
-    private fun isRunning() : Boolean{
+
+    private fun isRunning(): Boolean {
         return FFmpeg.getInstance(this).isFFmpegCommandRunning
     }
 
-    private fun stopRunningProcess() : Boolean {
+    private fun stopRunningProcess(): Boolean {
         return FFmpeg.getInstance(this).killRunningProcesses()
     }
 
-    private fun showInProgressToast(){
-        Toast.makeText(this, "Operation already in progress! Try again in a while.", Toast.LENGTH_SHORT).show()
+    private fun showInProgressToast() {
+        Toast.makeText(
+            this, "Operation already in progress! Try again in a while.",
+            Toast.LENGTH_SHORT).show()
     }
 }

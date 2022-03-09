@@ -86,4 +86,12 @@
         app:icon="@drawable/ic_baseline_compress_24"
         app:strokeColor="@color/design_default_color_primary" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="If you selects the resolution higher than original file resolution, video size will increase."
+        android:textSize="14sp"
+        android:textColor="#ff8080"
+        android:layout_margin="10dp"
+        android:layout_alignParentBottom="true"/>
 </RelativeLayout>
